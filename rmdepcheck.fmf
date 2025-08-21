@@ -1,0 +1,22 @@
+summary: rmdepcheck tests
+description: Runs rmdepcheck tests in Fedora CI — https://github.com/fedora-ci/rmdepcheck-pipeline.
+
+discover:
+  how: shell
+  url: https://codeberg.org/AdamWill/rmdepcheck.git
+  tests:
+    - name: run rmdepcheck
+      framework: shell
+      tests: >
+        ./rmdepcheck.py
+        https://kojipkgs.fedoraproject.org/repos/f<RELNUM>-build/latest/<ARCH>
+        file://<PATH TO PACKAGE REPO>
+
+prepare:
+  - name: Setup
+    how: shell
+    script: |
+      # Prepare the environment with create-repo
+
+execute:
+  how: tmt

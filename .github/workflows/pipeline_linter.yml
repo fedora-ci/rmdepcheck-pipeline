@@ -1,0 +1,21 @@
+name: Pipeline-Linter
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  syntax_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check Jenkinsfile file
+        id: validate
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: https://osci-jenkins-1.ci.fedoraproject.org/pipeline-model-converter/validate
+          method: POST
+          files: "{'jenkinsfile': 'Jenkinsfile'"
+      # TODO: Check output
