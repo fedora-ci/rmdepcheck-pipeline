@@ -100,10 +100,7 @@ pipeline {
                                 arch: "x86_64",
                                 os: [ compose: "${config.compose}" ],
                                 variables: [
-                                    PROFILE_NAME: "${config.profile_name}",
-                                    TASK_ID: "${getIdFromArtifactId(artifactId: artifactId)}",
-                                    KOJI_TASK_ID: "${getIdFromArtifactId(artifactId: artifactId)}",
-                                    ADDITIONAL_TASK_IDS: "${getIdFromArtifactId(additionalArtifactIds: additionalArtifactIds, separator: ' ')}"
+                                    KOJI_TASK_ID: "${getIdFromArtifactId(artifactId: artifactId)}"
                                 ]
                             ]
                         ]
