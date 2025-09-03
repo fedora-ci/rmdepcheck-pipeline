@@ -3,20 +3,28 @@ description: Runs rmdepcheck tests in Fedora CI — https://github.com/fedora-ci
 
 discover:
   how: shell
-  url: https://codeberg.org/AdamWill/rmdepcheck.git
   tests:
-    - name: run rmdepcheck
-      framework: shell
-      tests: >
-        ./rmdepcheck.py
-        https://kojipkgs.fedoraproject.org/repos/f<RELNUM>-build/latest/<ARCH>
-        file://<PATH TO PACKAGE REPO>
+    - name: Run rmdepcheck
+      # TODO: Allow to test more arches
+      test: ./run_rmdepcheck.py $@distro
 
 prepare:
-  - name: Setup
+  - name: Fetch and make available rmdepcheck
     how: shell
+    url: https://codeberg.org/AdamWill/rmdepcheck.git
     script: |
-      # Prepare the environment with create-repo
+      cp -r $TMT_PREPARE_SHELL_URL_REPOSITORY $TMT_PLAN_DATA/rmdepcheck
+      echo "PATH=$PATH:$TMT_PLAN_DATA/rmdepcheck" >> $TMT_PLAN_ENVIRONMENT_FILE
+  - name: Install dependencies for helper scripts
+    how: install
+    package:
+      - koji
+      - createrepo
+      - python3-fedora-distro-aliases
+  # TODO: Convert to almighty-install prepare
+  - name: Prepare the environment for rmdepcheck
+    how: shell
+    script: ./prepare.py $KOJI_TASK_ID
 
 execute:
   how: tmt
