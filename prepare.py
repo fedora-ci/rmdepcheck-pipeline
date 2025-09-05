@@ -12,10 +12,7 @@ logging.basicConfig(level="INFO")
 logger = logging.getLogger(Path(__file__).name)
 
 
-def main(args: argparse.Namespace) -> None:
-    repo_path: Path = args.workdir / "repo"
-    repo_path.mkdir(exist_ok=True)
-
+def koji_task(args: argparse.Namespace, repo_path: Path) -> None:
     logger.info(f"""
     Preparing environment for:
     Koji task: {args.koji_task_id}
@@ -43,9 +40,36 @@ def main(args: argparse.Namespace) -> None:
     )
 
 
+def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
+    logger.info(f"""
+    Preparing environment for:
+    Bodhi update: {args.bodhi_update_id}
+    Arch: {args.arch}
+    """)
+
+    logger.info("Downloading artifacts from Bodhi")
+    subprocess.run(
+        [
+            "bodhi",
+            "updates",
+            "download"
+            f"--updateid={args.bodhi_update_id}",
+            f"--arch={args.arch}",
+        ],
+        cwd=repo_path,
+    )
+
+    logger.info(f"Creating the repo: {repo_path}")
+    subprocess.run(
+        [
+            "createrepo",
+            f"{repo_path}",
+        ]
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("koji_task_id")
     parser.add_argument("--arch", default="x86_64")
     parser.add_argument(
         "--workdir",
@@ -53,6 +77,23 @@ if __name__ == "__main__":
         default=os.environ.get("TMT_PLAN_DATA", "."),
     )
 
+    actions = parser.add_subparsers(required=True, dest="action")
+
+    koji_parser = actions.add_parser("koji-task")
+    koji_parser.add_argument("koji_task_id")
+
+    bodhi_parser = actions.add_parser("bodhi-update")
+    bodhi_parser.add_argument("bodhi_update_id")
+
     args = parser.parse_args()
 
-    main(args)
+    repo_path: Path = args.workdir / "repo"
+    repo_path.mkdir(exist_ok=True)
+
+    match args.action:
+        case "koji-task":
+            koji_task(args, repo_path)
+        case "bodhi-update":
+            bodhi_update(args, repo_path)
+        case _:
+            raise NotImplementedError

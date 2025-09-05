@@ -18,13 +18,22 @@ prepare:
   - name: Install dependencies for helper scripts
     how: install
     package:
+      - bodhi
       - koji
       - createrepo
       - python3-fedora-distro-aliases
   # TODO: Convert to almighty-install prepare
   - name: Prepare the environment for rmdepcheck
     how: shell
-    script: ./prepare.py $KOJI_TASK_ID
+    script: |
+      if [[ -n "$BODHI_UPDATE_ID" ]]; then
+        ./prepare.py bodhi-update $BODHI_UPDATE_ID
+      elif [[ -n "$KOJI_TASK_ID" ]]; then
+        ./prepare.py koji-task $KOJI_TASK_ID
+      else
+        echo "Could not determine how to prepare the repo"
+        exit 1
+      fi
 
 execute:
   how: tmt
