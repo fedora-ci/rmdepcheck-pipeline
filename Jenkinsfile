@@ -104,8 +104,9 @@ pipeline {
                     ]
                     hook = registerWebhook()
                     requestPayload['notification'] = ['webhook': [url: hook.getURL()]]
+                    // TODO: Hard-coding koji-build artifact type. Should instead figure it out by the trigger type
                     requestPayload['environments'][0]['tmt'] = [
-                        context: config.tmt_context[getTargetArtifactType(artifactId)]
+                        context: config.tmt_context['koji-build']
                     ]
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)
