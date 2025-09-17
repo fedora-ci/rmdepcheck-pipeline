@@ -74,9 +74,9 @@ pipeline {
                     if (!artifactIds) {
                         abort('ARTIFACT_IDS is missing')
                     }
-                }
-                artifactIds.split(',').each { artifactId ->
-                    sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                    artifactIds.split(',').each { artifactId ->
+                        sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                    }
                 }
             }
         }
@@ -110,9 +110,9 @@ pipeline {
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)
                     testingFarmRequestId = response['id']
-                }
-                artifactIds.split(',').each { artifactId ->
-                    sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                    artifactIds.split(',').each { artifactId ->
+                        sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                    }
                 }
             }
         }
@@ -134,18 +134,24 @@ pipeline {
             evaluateTestingFarmResults(testingFarmResult)
         }
         success {
-            artifactIds.split(',').each { artifactId ->
-                sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
+            script {
+                artifactIds.split(',').each { artifactId ->
+                    sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
+                }
             }
         }
         failure {
-            artifactIds.split(',').each { artifactId ->
-                sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
+            script {
+                artifactIds.split(',').each { artifactId ->
+                    sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
+                }
             }
         }
         unstable {
-            artifactIds.split(',').each { artifactId ->
-                sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
+            script {
+                artifactIds.split(',').each { artifactId ->
+                    sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
+                }
             }
         }
         aborted {
