@@ -54,7 +54,7 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
         [
             "bodhi",
             "updates",
-            "download"
+            "download",
             f"--updateid={args.bodhi_update_id}",
             f"--arch={args.arch}",
         ],
