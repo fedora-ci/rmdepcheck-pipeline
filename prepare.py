@@ -29,6 +29,7 @@ def koji_task(args: argparse.Namespace, repo_path: Path) -> None:
             f"--arch={args.arch}",
         ],
         cwd=repo_path,
+        check=True,
     )
 
     logger.info(f"Creating the repo: {repo_path}")
@@ -36,7 +37,8 @@ def koji_task(args: argparse.Namespace, repo_path: Path) -> None:
         [
             "createrepo",
             f"{repo_path}",
-        ]
+        ],
+        check=True,
     )
 
 
@@ -57,6 +59,7 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
             f"--arch={args.arch}",
         ],
         cwd=repo_path,
+        check=True,
     )
 
     logger.info(f"Creating the repo: {repo_path}")
@@ -64,7 +67,8 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
         [
             "createrepo",
             f"{repo_path}",
-        ]
+        ],
+        check=True,
     )
 
 
