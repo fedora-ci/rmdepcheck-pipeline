@@ -4,8 +4,21 @@ description: Runs rmdepcheck tests in Fedora CI — https://github.com/fedora-ci
 discover:
   how: shell
   tests:
+    # TODO: Convert to almighty-install prepare
+    - name: Prepare the environment for rmdepcheck
+      order: 50
+      test: |
+        if [[ -n "$BODHI_UPDATE_ID" ]]; then
+          ./prepare.py bodhi-update $BODHI_UPDATE_ID
+        elif [[ -n "$KOJI_TASK_ID" ]]; then
+          ./prepare.py koji-task $KOJI_TASK_ID
+        else
+          echo "Could not determine how to prepare the repo"
+          exit 1
+        fi
     - name: Run rmdepcheck
       # TODO: Allow to test more arches
+      order: 60
       test: ./run_rmdepcheck.py $@distro
 
 prepare:
@@ -22,18 +35,6 @@ prepare:
       - koji
       - createrepo
       - python3-fedora-distro-aliases
-  # TODO: Convert to almighty-install prepare
-  - name: Prepare the environment for rmdepcheck
-    how: shell
-    script: |
-      if [[ -n "$BODHI_UPDATE_ID" ]]; then
-        ./prepare.py bodhi-update $BODHI_UPDATE_ID
-      elif [[ -n "$KOJI_TASK_ID" ]]; then
-        ./prepare.py koji-task $KOJI_TASK_ID
-      else
-        echo "Could not determine how to prepare the repo"
-        exit 1
-      fi
 
 execute:
   how: tmt
