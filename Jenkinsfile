@@ -14,6 +14,10 @@ def pipelineMetadata = [
     testType: 'rmdepcheck',
     maintainer: 'Fedora CI',
     docs: 'https://codeberg.org/AdamWill/rmdepcheck',
+    contact: [
+        irc: '#fedora-ci',
+        email: 'ci@lists.fedoraproject.org',
+    ],
 ]
 def bodhiId
 def artifactIds
