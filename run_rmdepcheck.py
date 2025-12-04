@@ -56,6 +56,7 @@ def main(args: argparse.Namespace) -> None:
         print("All is good!")
     else:
         print("Rmdepcheck failed!")
+        # exit code must be 1 to mark as test failure and not general error
         raise SystemExit(out.returncode)
 
 
