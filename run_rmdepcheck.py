@@ -41,7 +41,7 @@ def get_distro_build(distro_name: str) -> str:
 
 def main(args: argparse.Namespace) -> None:
     repo_path: Path = args.workdir / "repo"
-    out = subprocess.run(
+    subprocess.run(
         [
             "rmdepcheck.py",
             KOJI_BASE.format(
@@ -50,13 +50,9 @@ def main(args: argparse.Namespace) -> None:
             ),
             f"file://{repo_path}",
         ],
-        check=False,
+        check=True,
     )
-    if out.returncode == 0:
-        print("All is good!")
-    else:
-        print("Rmdepcheck failed!")
-        raise SystemExit(out.returncode)
+    logger.info("All is good!")
 
 
 if __name__ == "__main__":
@@ -71,4 +67,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args)
+    try:
+        main(args)
+    except subprocess.CalledProcessError as exc:
+        logger.error("Rmdepcheck failed!", exc_info=exc)
+        raise SystemExit(1)
