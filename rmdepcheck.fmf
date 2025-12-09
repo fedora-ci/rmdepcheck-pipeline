@@ -16,10 +16,19 @@ discover:
           echo "Could not determine how to prepare the repo"
           exit 1
         fi
+      require:
+        - bodhi
+        - koji
+        - createrepo
+        - python3-fedora-distro-aliases
     - name: Run rmdepcheck
       # TODO: Allow to test more arches
       order: 60
       test: ./run_rmdepcheck.py $@distro
+      require:
+        - dnf
+        - zstd
+        - curl
 
 prepare:
   - name: Fetch and make available rmdepcheck
@@ -28,13 +37,6 @@ prepare:
     script: |
       cp -r $TMT_PREPARE_SHELL_URL_REPOSITORY $TMT_PLAN_DATA/rmdepcheck
       echo "PATH=$PATH:$TMT_PLAN_DATA/rmdepcheck" >> $TMT_PLAN_ENVIRONMENT_FILE
-  - name: Install dependencies for helper scripts
-    how: install
-    package:
-      - bodhi
-      - koji
-      - createrepo
-      - python3-fedora-distro-aliases
 
 execute:
   how: tmt
