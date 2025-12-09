@@ -102,6 +102,9 @@ if __name__ == "__main__":
                 bodhi_update(args, repo_path)
             case _:
                 raise NotImplementedError
-    except subprocess.CalledProcessError as exc:
-        logger.error("Prepare failed", exc_info=exc)
+    except subprocess.CalledProcessError:
+        logger.error("Prepare failed")
         raise SystemExit(1)
+    except Exception as exc:
+        logger.error("Unexpected prepare failure", exc_info=exc)
+        raise SystemExit(2)

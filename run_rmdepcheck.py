@@ -69,6 +69,9 @@ if __name__ == "__main__":
 
     try:
         main(args)
-    except subprocess.CalledProcessError as exc:
-        logger.error("Rmdepcheck failed!", exc_info=exc)
+    except subprocess.CalledProcessError:
+        logger.error("Rmdepcheck failed!")
         raise SystemExit(1)
+    except Exception as exc:
+        logger.error("Unexpected rmdepcheck failure", exc_info=exc)
+        raise SystemExit(2)
