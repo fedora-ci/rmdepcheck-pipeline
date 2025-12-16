@@ -62,6 +62,13 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
         check=True,
     )
 
+    # bodhi updates download does not fail on failed downloads.
+    # for now we just manually check that there are at least a rpm present
+    rpms = list(repo_path.glob("*.rpm"))
+    if not rpms:
+        logger.error("No rpms were downloaded? Something bad is happening!")
+        raise SystemExit(1)
+
     logger.info(f"Creating the repo: {repo_path}")
     subprocess.run(
         [
@@ -102,6 +109,8 @@ if __name__ == "__main__":
                 bodhi_update(args, repo_path)
             case _:
                 raise NotImplementedError
+    except SystemExit:
+        raise 
     except subprocess.CalledProcessError:
         logger.error("Prepare failed")
         raise SystemExit(1)
