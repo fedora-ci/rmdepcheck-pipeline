@@ -55,6 +55,9 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
             "bodhi",
             "updates",
             "download",
+            # we don't need signed packages for rmdepcheck so this
+            # avoids problems if koji can't find the signed ones
+            "--no-gpg",
             f"--updateid={args.bodhi_update_id}",
             f"--arch={args.arch}",
         ],
