@@ -1,22 +1,5 @@
 {
   "profiles": {
-    "f41": {
-      "compose": "Fedora-41",
-      "tmt_context": {
-        "koji-build": {
-          "distro": "fedora-41",
-          "arch": "x86_64",
-          "trigger": "build",
-          "initiator": "fedora-ci"
-        },
-        "fedora-dist-git": {
-          "distro": "fedora-41",
-          "arch": "x86_64",
-          "trigger": "commit",
-          "initiator": "fedora-ci"
-        }
-      }
-    },
     "f42": {
       "compose": "Fedora-42",
       "tmt_context": {
