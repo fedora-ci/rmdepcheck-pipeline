@@ -8,7 +8,7 @@
   prepare:
     - name: Fetch and make available rmdepcheck
       how: shell
-      url: https://codeberg.org/AdamWill/rmdepcheck.git
+      url: https://forge.fedoraproject.org/quality/rmdepcheck.git
       script: |
         cp -r $TMT_PREPARE_SHELL_URL_REPOSITORY $TMT_PLAN_DATA/rmdepcheck
         echo "PATH=$PATH:$TMT_PLAN_DATA/rmdepcheck" >> $TMT_PLAN_ENVIRONMENT_FILE

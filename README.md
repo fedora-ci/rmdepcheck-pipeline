@@ -2,7 +2,7 @@
 
 This repository contains the Fedora-CI test for [rmdepcheck].
 
-[rmdepcheck]: https://codeberg.org/AdamWill/rmdepcheck
+[rmdepcheck]: https://forge.fedoraproject.org/quality/rmdepcheck
 
 ## Manual execution
 
