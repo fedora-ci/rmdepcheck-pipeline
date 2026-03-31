@@ -23,7 +23,6 @@ def bodhiId
 def artifactIds
 def testingFarmRequestId
 def testingFarmResult
-def config
 def ignoreList
 def pipelineRepoUrlAndRef
 def hook
@@ -47,7 +46,7 @@ pipeline {
     parameters {
         string(name: 'BODHI_UPDATE_ID', defaultValue: '', trim: true, description: '"Bodhi updated ID; Example: FEDORA-2025-7826f19244')
         string(name: 'ARTIFACT_IDS', defaultValue: '', trim: true, description: 'A comma-separated list of all koji builds in the update; Example: koji-build:46436038')
-        string(name: 'TEST_PROFILE', defaultValue: env.FEDORA_CI_RAWHIDE_RELEASE_ID, trim: true, description: "A name of the test profile to use; Example: ${env.FEDORA_CI_RAWHIDE_RELEASE_ID}")
+        string(name: 'DIST_GIT_BRANCH', defaultValue: '', trim: true, description: "Dist-git branch associated with the provided ARTIFACT_ID")
     }
 
     environment {
@@ -65,7 +64,6 @@ pipeline {
                     artifactIds = params.ARTIFACT_IDS
 
                     checkout scm
-                    config = loadConfig(profile: params.TEST_PROFILE)
                     pipelineRepoUrlAndRef = [url: "${getGitUrl()}", ref: "${getGitRef()}"]
 
                     if (!bodhiId) {
@@ -95,7 +93,6 @@ pipeline {
                         environments: [
                             [
                                 arch: "x86_64",
-                                os: [ compose: "${config.compose}" ],
                                 variables: [
                                     BODHI_UPDATE_ID: bodhiId
                                 ]
@@ -104,9 +101,10 @@ pipeline {
                     ]
                     hook = registerWebhook()
                     requestPayload['notification'] = ['webhook': [url: hook.getURL()]]
-                    // TODO: Hard-coding koji-build artifact type. Should instead figure it out by the trigger type
                     requestPayload['environments'][0]['tmt'] = [
-                        context: config.tmt_context['koji-build']
+                        context: [
+                            "dist-git-branch": params.DIST_GIT_BRANCH
+                        ]
                     ]
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)

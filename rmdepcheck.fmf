@@ -1,6 +1,10 @@
 /plan:
   summary: rmdepcheck tests
   description: Runs rmdepcheck tests in Fedora CI — https://github.com/fedora-ci/rmdepcheck-pipeline.
+
+  provision:
+    how: container
+    image: fedora
   
   discover:
     how: fmf
@@ -12,7 +16,7 @@
       script: |
         cp -r $TMT_PREPARE_SHELL_URL_REPOSITORY $TMT_PLAN_DATA/rmdepcheck
         echo "PATH=$PATH:$TMT_PLAN_DATA/rmdepcheck" >> $TMT_PLAN_ENVIRONMENT_FILE
-        echo "DISTRO=$@distro" >> $TMT_PLAN_ENVIRONMENT_FILE
+        echo "DIST_GIT_BRANCH=$@{dist-git-branch}" >> $TMT_PLAN_ENVIRONMENT_FILE
   
   execute:
     how: tmt
@@ -39,7 +43,7 @@
     summary: Run rmdepcheck
     # TODO: Allow to test more arches
     order: 60
-    test: ./run_rmdepcheck.py $DISTRO
+    test: ./run_rmdepcheck.py $DIST_GIT_BRANCH
     require:
       - dnf
       - zstd
