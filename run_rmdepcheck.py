@@ -1,42 +1,35 @@
 #!/usr/bin/python3
 # /// script
 # dependencies = [
-#   "fedora-distro-aliases",
+#   "koji",
 # ]
 # ///
 
 import argparse
 import logging
 import os
-import re
 import subprocess
 from pathlib import Path
 
-
-from fedora_distro_aliases import get_distro_aliases
-
-# TODO: There is no clean way to break down the `fedora-rawhide` from the aliases right now, using
-#   fedora-all alias instead
-# https://github.com/rpm-software-management/fedora-distro-aliases/issues/29
-fedora_all = get_distro_aliases()["fedora-all"]
+import koji
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(Path(__file__).name)
 
 KOJI_BASE = r"https://kojipkgs.fedoraproject.org/repos/{distro_build}/latest/{arch}"
+"""
+Koji build base repo used for the rmdepcheck base repo.
+"""
 
 
-def get_distro_build(distro_name: str) -> str:
-    if fedora_match := re.match(r"fedora-(?P<branch>.+)", distro_name):
-        branch = fedora_match.group("branch")
-        if branch != "rawhide":
-            # For numbered branches (e.g. fedora-42)
-            branch = f"f{branch}"
-    else:
-        # TODO: Deal with epel and eln
-        raise NotImplementedError
-    distro_info = next(d for d in fedora_all if d.branch == branch)
-    return f"f{distro_info.version_number}-build"
+def get_distro_build(dist_git_branch: str) -> str:
+    config = koji.read_config("koji")
+    koji_session= koji.ClientSession(config["server"])
+    build_target = koji_session.getBuildTarget(dist_git_branch)
+    if not build_target:
+        logger.error("Could not find the build target for '%s'", dist_git_branch)
+        exit(1)
+    return build_target["build_tag_name"]
 
 
 def main(args: argparse.Namespace) -> None:
@@ -44,10 +37,12 @@ def main(args: argparse.Namespace) -> None:
     subprocess.run(
         [
             "rmdepcheck.py",
+            # Base repo
             KOJI_BASE.format(
-                distro_build=get_distro_build(args.distro),
+                distro_build=get_distro_build(args.dist_git_branch),
                 arch=args.arch,
             ),
+            # Repo to be checked
             f"file://{repo_path}",
         ],
         check=True,
@@ -57,7 +52,7 @@ def main(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Actually run rmdepcheck")
-    parser.add_argument("distro")
+    parser.add_argument("dist_git_branch")
     parser.add_argument("--arch", default="x86_64")
     parser.add_argument(
         "--workdir",
@@ -69,7 +64,7 @@ if __name__ == "__main__":
 
     try:
         main(args)
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, SystemExit):
         logger.error("Rmdepcheck failed!")
         raise SystemExit(1)
     except Exception as exc:
