@@ -19,11 +19,8 @@ def pipelineMetadata = [
         email: 'ci@lists.fedoraproject.org',
     ],
 ]
-def bodhiId
-def artifactIds
 def testingFarmRequestId
 def testingFarmResult
-def ignoreList
 def pipelineRepoUrlAndRef
 def hook
 def runUrl
@@ -60,21 +57,18 @@ pipeline {
             }
             steps {
                 script {
-                    bodhiId = params.BODHI_UPDATE_ID
-                    artifactIds = params.ARTIFACT_IDS
+                    if (!params.BODHI_UPDATE_ID) {
+                        abort('BODHI_UPDATE_ID is missing')
+                    }
+                    if (!params.ARTIFACT_IDS) {
+                        abort('ARTIFACT_IDS is missing')
+                    }
+
+                    currentBuild.displayName = params.BODHI_UPDATE_ID
 
                     checkout scm
                     pipelineRepoUrlAndRef = [url: "${getGitUrl()}", ref: "${getGitRef()}"]
-
-                    if (!bodhiId) {
-                        abort('BODHI_UPDATE_ID is missing')
-                    }
-                    if (!artifactIds) {
-                        abort('ARTIFACT_IDS is missing')
-                    }
-                    artifactIds.split(',').each { artifactId ->
-                        sendMessage(type: 'queued', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
-                    }
+                    sendMessage(type: 'queued', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
                 }
             }
         }
@@ -94,7 +88,7 @@ pipeline {
                             [
                                 arch: "x86_64",
                                 variables: [
-                                    BODHI_UPDATE_ID: bodhiId
+                                    BODHI_UPDATE_ID: params.BODHI_UPDATE_ID
                                 ]
                             ]
                         ]
@@ -109,9 +103,7 @@ pipeline {
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)
                     testingFarmRequestId = response['id']
-                    artifactIds.split(',').each { artifactId ->
-                        sendMessage(type: 'running', artifactId: artifactId, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
-                    }
+                    sendMessage(type: 'running', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
                 }
             }
         }
@@ -133,32 +125,18 @@ pipeline {
             evaluateTestingFarmResults(testingFarmResult)
         }
         success {
-            script {
-                artifactIds.split(',').each { artifactId ->
-                    sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
-                }
-            }
+            sendMessage(type: 'complete', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
         }
         failure {
-            script {
-                artifactIds.split(',').each { artifactId ->
-                    sendMessage(type: 'error', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
-                }
-            }
+            sendMessage(type: 'error', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
         }
         unstable {
-            script {
-                artifactIds.split(',').each { artifactId ->
-                    sendMessage(type: 'complete', artifactId: artifactId, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
-                }
-            }
+            sendMessage(type: 'complete', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
         }
         aborted {
             script {
                 if (isTimeoutAborted(timeout: env.DEFAULT_PIPELINE_TIMEOUT_MINUTES, unit: 'MINUTES')) {
-                    artifactIds.split(',').each { artifactId ->
-                        sendMessage(type: 'error', artifactId: artifactId, errorReason: 'Timeout has been exceeded, pipeline aborted.', pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
-                    }
+                    sendMessage(type: 'error', additionalArtifactIds: params.ARTIFACT_IDS, errorReason: 'Timeout has been exceeded, pipeline aborted.', pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
                 }
             }
         }
