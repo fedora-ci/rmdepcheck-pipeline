@@ -48,3 +48,4 @@
       - dnf
       - zstd
       - curl
+      - python3-lxml
