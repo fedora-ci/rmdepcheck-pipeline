@@ -46,6 +46,3 @@
     require:
       - koji
       - dnf
-      - zstd
-      - curl
-      - python3-lxml
