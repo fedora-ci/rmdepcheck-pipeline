@@ -17,6 +17,12 @@
         cp -r $TMT_PREPARE_SHELL_URL_REPOSITORY $TMT_PLAN_DATA/rmdepcheck
         echo "PATH=$PATH:$TMT_PLAN_DATA/rmdepcheck" >> $TMT_PLAN_ENVIRONMENT_FILE
         echo "DIST_GIT_BRANCH=$@{dist-git-branch}" >> $TMT_PLAN_ENVIRONMENT_FILE
+    - name: Set anon_retry in Koji config to avoid 502s
+      how: shell
+      script: |
+        mkdir -p ~/.koji
+        echo "[koji]" >> ~/.koji/config
+        echo "anon_retry = true" >> ~/.koji/config
   
   execute:
     how: tmt
