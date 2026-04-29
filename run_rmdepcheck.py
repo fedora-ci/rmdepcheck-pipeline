@@ -16,6 +16,17 @@ import koji
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(Path(__file__).name)
 
+ELN_VARIANTS = (
+    "AppStream",
+    "BaseOS",
+    "CRB",
+    "Extras",
+    "HighAvailability",
+    "NFV",
+    "RT",
+    "SAP",
+    "SAPHANA"
+)
 KOJI_BASE = r"https://kojipkgs.fedoraproject.org/repos/{distro_build}/latest/{arch}"
 """
 Koji build base repo used for the rmdepcheck base repo.
@@ -34,14 +45,27 @@ def get_distro_build(dist_git_branch: str) -> str:
 
 def main(args: argparse.Namespace) -> None:
     repo_path: Path = args.workdir / "repo"
+    if args.dist_git_branch == "eln":
+        # sad ELN special case: ELN does not consider repoclosure of
+        # the buildroot as a goal, only the composed repos. They have
+        # asked us to run rmdepcheck against the latest composed
+        # repos, so, we'll do that.
+        baserepoarg = ",".join(
+            "https://kojipkgs.fedoraproject.org/compose/eln/latest-Fedora-eln/compose/"
+            f"{variant}/{args.arch}/os"
+            for variant in ELN_VARIANTS
+        )
+    else:
+        # normal case: check the buildroot repo
+        baserepoarg = KOJI_BASE.format(
+            distro_build=get_distro_build(args.dist_git_branch),
+            arch=args.arch,
+        )
     subprocess.run(
         [
             "rmdepcheck.py",
             # Base repo
-            KOJI_BASE.format(
-                distro_build=get_distro_build(args.dist_git_branch),
-                arch=args.arch,
-            ),
+            baserepoarg,
             # Repo to be checked
             f"file://{repo_path}",
         ],
