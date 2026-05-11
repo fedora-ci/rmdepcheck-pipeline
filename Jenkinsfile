@@ -103,7 +103,8 @@ pipeline {
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)
                     testingFarmRequestId = response['id']
-                    sendMessage(type: 'running', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, dryRun: isPullRequest())
+                    runUrl = "${FEDORA_CI_TESTING_FARM_ARTIFACTS_URL}/${testingFarmRequestId}"
+                    sendMessage(type: 'running', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
                 }
             }
         }
@@ -114,8 +115,6 @@ pipeline {
                 script {
                     def response = waitForTestingFarm(requestId: testingFarmRequestId, hook: hook)
                     testingFarmResult = response.apiResponse
-                    runUrl = "${FEDORA_CI_TESTING_FARM_ARTIFACTS_URL}/${testingFarmRequestId}"
-                    sendMessage(type: 'running', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
                 }
             }
         }
