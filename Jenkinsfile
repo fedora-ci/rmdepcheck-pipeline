@@ -115,6 +115,7 @@ pipeline {
                     def response = waitForTestingFarm(requestId: testingFarmRequestId, hook: hook)
                     testingFarmResult = response.apiResponse
                     runUrl = "${FEDORA_CI_TESTING_FARM_ARTIFACTS_URL}/${testingFarmRequestId}"
+                    sendMessage(type: 'running', additionalArtifactIds: params.ARTIFACT_IDS, pipelineMetadata: pipelineMetadata, runUrl: runUrl, dryRun: isPullRequest())
                 }
             }
         }
