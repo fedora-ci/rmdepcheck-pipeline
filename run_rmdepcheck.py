@@ -34,19 +34,31 @@ def get_distro_build(dist_git_branch: str) -> str:
 
 def main(args: argparse.Namespace) -> None:
     repo_path: Path = args.workdir / "repo"
-    subprocess.run(
-        [
-            "rmdepcheck.py",
-            # Base repo
-            KOJI_BASE.format(
-                distro_build=get_distro_build(args.dist_git_branch),
-                arch=args.arch,
-            ),
-            # Repo to be checked
-            f"file://{repo_path}",
-        ],
-        check=True,
-    )
+    if args.dist_git_branch == "eln":
+        subprocess.run(
+            [
+                "rdc-compose",
+                # Latest ELN compose
+                "https://kojipkgs.fedoraproject.org/compose/eln/latest-Fedora-eln/compose/",
+                # Repo to be checked
+                repo_path,
+            ],
+            check=True,
+        )
+    else:
+        subprocess.run(
+            [
+                "rdc-repos",
+                # Base repo
+                KOJI_BASE.format(
+                    distro_build=get_distro_build(args.dist_git_branch),
+                    arch=args.arch,
+                ),
+                # Repo to be checked
+                f"file://{repo_path}",
+            ],
+            check=True,
+        )
     logger.info("All is good!")
 
 
