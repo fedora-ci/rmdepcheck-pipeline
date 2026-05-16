@@ -52,3 +52,6 @@
     require:
       - koji
       - dnf
+      - createrepo_c
+      - python3-requests
+      - python3-urllib3
