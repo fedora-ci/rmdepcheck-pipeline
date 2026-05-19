@@ -30,6 +30,7 @@
 /steps:
   /prepare:
     summary: Prepare the environment for rmdepcheck
+    duration: 30m
     order: 50
     test: |
       if [[ -n "$BODHI_UPDATE_ID" ]]; then
