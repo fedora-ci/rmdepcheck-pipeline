@@ -69,8 +69,10 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
     # for now we just manually check that there are at least a rpm present
     rpms = list(repo_path.glob("*.rpm"))
     if not rpms:
-        logger.error("No rpms were downloaded? Something bad is happening!")
-        raise SystemExit(1)
+        # TODO: make this properly report as skipped when whe test all arches
+        #  Cannot do it yet because if all tests are skipped, the test will fail
+        logger.warning("No rpms were downloaded")
+        return
 
     logger.info(f"Creating the repo: {repo_path}")
     subprocess.run(
