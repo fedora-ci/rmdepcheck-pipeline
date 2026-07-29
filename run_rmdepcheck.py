@@ -24,7 +24,7 @@ Koji build base repo used for the rmdepcheck base repo.
 
 def get_distro_build(dist_git_branch: str) -> str:
     config = koji.read_config("koji")
-    koji_session= koji.ClientSession(config["server"])
+    koji_session = koji.ClientSession(config["server"])
     build_target = koji_session.getBuildTarget(dist_git_branch)
     if not build_target:
         logger.error("Could not find the build target for '%s'", dist_git_branch)
@@ -34,6 +34,17 @@ def get_distro_build(dist_git_branch: str) -> str:
 
 def main(args: argparse.Namespace) -> None:
     repo_path: Path = args.workdir / "repo"
+    if not any(repo_path.glob("*.rpm")):
+        logger.info("No rpms were found skipping!")
+        subprocess.run(
+            [
+                "tmt-report-result",
+                "/",
+                "SKIP",
+            ],
+            check=True,
+        )
+        return
     if args.dist_git_branch == "eln":
         subprocess.run(
             [
