@@ -44,6 +44,7 @@ pipeline {
         string(name: 'BODHI_UPDATE_ID', defaultValue: '', trim: true, description: '"Bodhi updated ID; Example: FEDORA-2025-7826f19244')
         string(name: 'ARTIFACT_IDS', defaultValue: '', trim: true, description: 'A comma-separated list of all koji builds in the update; Example: koji-build:46436038')
         string(name: 'DIST_GIT_BRANCH', defaultValue: '', trim: true, description: "Dist-git branch associated with the provided ARTIFACT_ID")
+        booleanParam(name: 'MULTIHOST_PIPELINE', defaultValue: false, description: 'Use the new testing-farm multihost-pipeline')
     }
 
     environment {
@@ -88,18 +89,27 @@ pipeline {
                             [
                                 arch: "x86_64",
                                 variables: [
-                                    BODHI_UPDATE_ID: params.BODHI_UPDATE_ID
+                                    BODHI_UPDATE_ID: params.BODHI_UPDATE_ID,
+                                ],
+                                tmt: [
+                                    context: [
+                                        "dist-git-branch": params.DIST_GIT_BRANCH,
+                                    ]
                                 ]
                             ]
                         ]
                     ]
                     hook = registerWebhook()
                     requestPayload['notification'] = ['webhook': [url: hook.getURL()]]
-                    requestPayload['environments'][0]['tmt'] = [
-                        context: [
-                            "dist-git-branch": params.DIST_GIT_BRANCH
+                    if (params.MULTIHOST_PIPELINE) {
+                        requestPayload['settings'] = [
+                            pipeline: [
+                                type: "tmt-multihost",
+                            ]
                         ]
-                    ]
+                        requestPayload['environments'][0]["tmt"]["policy"] = "fedora-ci"
+                    }
+
 
                     def response = submitTestingFarmRequest(payloadMap: requestPayload)
                     testingFarmRequestId = response['id']
