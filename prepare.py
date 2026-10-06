@@ -4,9 +4,10 @@
 
 import argparse
 import logging
-import os
 import subprocess
 from pathlib import Path
+
+from utils import get_workdir
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(Path(__file__).name)
@@ -87,11 +88,6 @@ def bodhi_update(args: argparse.Namespace, repo_path: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--arch", default="x86_64")
-    parser.add_argument(
-        "--workdir",
-        type=Path,
-        default=os.environ.get("TMT_PLAN_DATA", "."),
-    )
 
     actions = parser.add_subparsers(required=True, dest="action")
 
@@ -103,7 +99,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    repo_path: Path = args.workdir / "repo"
+    repo_path: Path = get_workdir() / "repo"
     repo_path.mkdir(exist_ok=True)
 
     try:
